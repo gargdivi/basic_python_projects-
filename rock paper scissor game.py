@@ -1,20 +1,22 @@
 from tkinter import *
+from tkinter import messagebox
 from PIL import Image, ImageTk
 import random
 
-# Global scores
+# Scores and round tracking
 userscore = 0
 pcscore = 0
+rounds_played = 0
+round_limit = 0
 
 # Initialize main window
 root = Tk()
-root.title('Rock Paper Scissor')
+root.title('Rock Paper Scissor Game')
 root.wm_iconbitmap("images/play.png")
 root.geometry('650x750')
 root.maxsize(650, 750)
 root.minsize(650, 450)
 
-# Declare widgets to use later
 rock = Button()
 paper = Button()
 scissor = Button()
@@ -23,41 +25,43 @@ pcchose = Label()
 L2 = Label()
 L3 = Label()
 
-# Hover functions
-def enter(event):
-    rock.config(bg='black', fg='white')
-
-def leave(event):
-    rock.config(bg='white', fg='black')
-
-def enter1(event):
-    paper.config(bg='black', fg='white')
-
-def leave1(event):
-    paper.config(bg='white', fg='black')
-
-def enter2(event):
-    scissor.config(bg='black', fg='white')
-
-def leave2(event):
-    scissor.config(bg='white', fg='black')
+def enter(event): rock.config(bg='black', fg='white')
+def leave(event): rock.config(bg='white', fg='black')
+def enter1(event): paper.config(bg='black', fg='white')
+def leave1(event): paper.config(bg='white', fg='black')
+def enter2(event): scissor.config(bg='black', fg='white')
+def leave2(event): scissor.config(bg='white', fg='black')
 
 def entergame(event):
-    if nameinp.get().strip() != "":
+    if nameinp.get().strip() != "" and roundinp.get().isdigit():
         maingame()
 
-# Game logic function
+def check_game_end():
+    global rounds_played, round_limit
+    if rounds_played >= round_limit:
+        if userscore > pcscore:
+            winner = f"{nameinp.get()} wins!"
+        elif pcscore > userscore:
+            winner = "Computer wins!"
+        else:
+            winner = "It's a tie!"
+        messagebox.showinfo("Game Over", f"Rounds completed!\nFinal Score:\n{nameinp.get()}: {userscore}\nComputer: {pcscore}\n{winner}")
+        root.destroy()
+
 def maingame():
-    global userscore, pcscore, nameinp
-    global rock, paper, scissor, L2, L3
+    global userscore, pcscore, nameinp, rock, paper, scissor, L2, L3, round_limit, roundinp, rounds_played
+
+    round_limit = int(roundinp.get())
+    rounds_played = 0
 
     root.geometry('650x750')
     name.destroy()
     f1.destroy()
     inpname.destroy()
     sub.destroy()
+    roundlabel.destroy()
+    roundinp.destroy()
 
-    # Score display
     L2 = Label(text=f"{nameinp.get()} Score: {userscore}", bg='#4834DF', fg='#ffffff', borderwidth=5, relief=RAISED,
                font='Rockwell 13 bold', padx=4, pady=2)
     L2.grid(row=6, column=0, pady=15)
@@ -66,9 +70,8 @@ def maingame():
     L3.grid(row=7, column=0, pady=15)
 
     def click(event):
-        global userscore, pcscore, L1, pcchose, L2, L3
+        global userscore, pcscore, L1, pcchose, L2, L3, rounds_played
 
-        # Remove previous result labels
         L1.grid_forget()
         pcchose.destroy()
 
@@ -93,7 +96,9 @@ def maingame():
         L2.config(text=f"{nameinp.get()} Score: {userscore}")
         L3.config(text=f"PC Score: {pcscore}")
 
-    # Game title and labels
+        rounds_played += 1
+        check_game_end()
+
     head = Label(text='Rock Paper Scissor', font='arial 35 bold', bg='black', fg='white')
     head.grid(columnspan=2, row=0, ipadx=70, padx=33, pady=10)
     playerone = Label(text=f'Player 1 : {nameinp.get()}', font='lucida 16')
@@ -101,7 +106,6 @@ def maingame():
     playertwo = Label(text=f'Player 2 : Computer', font='lucida 16')
     playertwo.grid(row=2, column=1)
 
-    # User buttons
     rock = Button(text='Rock', font='comicsansms 14 bold', height=1, width=7, bg='white')
     rock.grid(row=3, column=0, pady=15)
     rock.bind('<Enter>', enter)
@@ -120,16 +124,14 @@ def maingame():
     scissor.bind('<Leave>', leave2)
     scissor.bind('<Button-1>', click)
 
-    # PC static buttons
     Button(text='Rock', font='comicsansms 14 bold', height=1, width=7).grid(row=3, column=1, pady=15)
     Button(text='Paper', font='comicsansms 14 bold', height=1, width=7).grid(row=4, column=1)
     Button(text='Scissor', font='comicsansms 14 bold', height=1, width=7).grid(row=5, column=1, pady=15)
 
-    # Close game button
     btnclose = Button(text='Close Game', command=root.destroy, bg='green', font='arial 10 bold')
     btnclose.place(x=300, y=410)
 
-# First screen - enter name
+# Home screen
 f1 = Frame(root)
 img = Image.open('images/symbols.png')
 img = img.resize((650, 450), Image.LANCZOS)
@@ -143,10 +145,19 @@ name.place(x=262, y=250)
 
 nameinp = StringVar()
 inpname = Entry(root, textvar=nameinp, font='arial 10 bold')
-inpname.bind('<Return>', entergame)
 inpname.place(x=275, y=290)
 
+# Round limit input
+roundlabel = Label(root, text='Enter Number of Rounds :', font='arial 13 bold')
+roundlabel.place(x=240, y=320)
+
+roundinp = Entry(root, font='arial 10 bold')
+roundinp.place(x=275, y=350)
+
+inpname.bind('<Return>', entergame)
+roundinp.bind('<Return>', entergame)
+
 sub = Button(root, text="Let's Play", font='lucida 10 bold', bg='black', fg='white', command=maingame)
-sub.place(x=305, y=350)
+sub.place(x=305, y=390)
 
 root.mainloop()
